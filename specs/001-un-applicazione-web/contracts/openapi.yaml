@@ -1,0 +1,199 @@
+openapi: 3.1.0
+info:
+  title: Security Tools Hub API
+  version: 0.1.0
+  description: API contracts for password generator, AI image, and URL shortener.
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/passwords/generate:
+    post:
+      summary: Generate a password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordOptions"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneratedPassword"
+        "400": { $ref: "#/components/responses/BadRequest" }
+  /api/images/create:
+    post:
+      summary: Create an AI-generated image
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImageCreateRequest"
+      responses:
+        "200":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImageCreateResponse"
+        "400": { $ref: "#/components/responses/BadRequest" }
+  /api/images/describe:
+    post:
+      summary: Describe an image using AI
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImageDescribeRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImageDescribeResponse"
+        "400": { $ref: "#/components/responses/BadRequest" }
+  /api/urls:
+    post:
+      summary: Shorten a URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShortenUrlRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShortenUrlResponse"
+        "400": { $ref: "#/components/responses/BadRequest" }
+    get:
+      summary: List shortened URLs
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: pageSize
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/ShortenUrlResponse" }
+                  total: { type: integer }
+                  page: { type: integer }
+                  pageSize: { type: integer }
+  /api/urls/{id}:
+    get:
+      summary: Get a shortened URL by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShortenUrlResponse"
+        "404": { $ref: "#/components/responses/NotFound" }
+components:
+  schemas:
+    PasswordOptions:
+      type: object
+      required: [length]
+      properties:
+        length: { type: integer, minimum: 8, maximum: 64 }
+        includeUppercase: { type: boolean, default: true }
+        includeLowercase: { type: boolean, default: true }
+        includeNumbers: { type: boolean, default: true }
+        includeSymbols: { type: boolean, default: false }
+        excludeAmbiguous: { type: boolean, default: true }
+    GeneratedPassword:
+      type: object
+      properties:
+        value: { type: string }
+        strength: { type: string, enum: [weak, medium, strong] }
+    ImageCreateRequest:
+      type: object
+      required: [prompt]
+      properties:
+        prompt: { type: string, minLength: 1 }
+        size:
+          {
+            type: string,
+            enum: ["256x256", "512x512", "1024x1024"],
+            default: "512x512",
+          }
+        format: { type: string, enum: [png, jpg, webp], default: webp }
+    ImageCreateResponse:
+      type: object
+      properties:
+        id: { type: string }
+        url: { type: string, format: uri }
+        width: { type: integer }
+        height: { type: integer }
+        format: { type: string, enum: [png, jpg, webp] }
+    ImageDescribeRequest:
+      type: object
+      required: [imageUrl]
+      properties:
+        imageUrl: { type: string, format: uri }
+        maxTokens: { type: integer, minimum: 16, maximum: 2048 }
+    ImageDescribeResponse:
+      type: object
+      properties:
+        id: { type: string }
+        description: { type: string }
+        tags:
+          type: array
+          items: { type: string }
+    ShortenUrlRequest:
+      type: object
+      required: [url]
+      properties:
+        url: { type: string, format: uri }
+        customAlias: { type: string, pattern: "^[a-zA-Z0-9_-]{3,30}$" }
+        expiresAt: { type: string, format: date-time }
+    ShortenUrlResponse:
+      type: object
+      properties:
+        id: { type: string }
+        shortUrl: { type: string, format: uri }
+        originalUrl: { type: string, format: uri }
+        clicks: { type: integer }
+        expiresAt: { type: string, format: date-time, nullable: true }
+    ApiError:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        details: {}
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
