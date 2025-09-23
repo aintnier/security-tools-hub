@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 
 function App() {
   return (
@@ -9,9 +9,10 @@ function App() {
             Security Tools Hub
           </h1>
           <p className="text-xl text-muted-foreground text-center max-w-2xl">
-            Frontend initialization complete with React, Vite, Tailwind CSS v4, and shadcn/ui
+            Frontend initialization complete with React, Vite, Tailwind CSS v3,
+            and shadcn/ui
           </p>
-          
+
           <div className="flex space-x-4">
             <Button>Get Started</Button>
             <Button variant="outline">Learn More</Button>
@@ -46,7 +47,7 @@ function App() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

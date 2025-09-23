@@ -34,6 +34,16 @@ build/
 *.pem
 *.p12
 
+# Ignore Terraform directories and files
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.log
+.terraform.lock.hcl
+terraform.tfvars
+terraform.tfvars.json
+
 # Allow configuration structure
 !docs/
 !frontend/
